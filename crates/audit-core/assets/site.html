@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>audit viewer</title>
+<style>
+  :root { --bg:#0d1117; --fg:#c9d1d9; --mut:#8b949e; --acc:#58a6ff; --card:#161b22; --bd:#30363d; }
+  * { box-sizing:border-box } body { margin:0; font:14px/1.45 ui-monospace,Consolas,monospace; background:var(--bg); color:var(--fg); display:flex; height:100vh }
+  #side { width:260px; min-width:260px; overflow-y:auto; border-right:1px solid var(--bd); padding:12px }
+  #main { flex:1; overflow-y:auto; padding:12px }
+  h1 { font-size:16px; margin:0 0 2px } .meta { color:var(--mut); font-size:11px; margin-bottom:10px }
+  .facet h3 { font-size:11px; text-transform:uppercase; color:var(--mut); margin:14px 0 4px }
+  .facet label { display:flex; gap:6px; align-items:center; padding:2px 4px; border-radius:4px; cursor:pointer; font-size:12px }
+  .facet label:hover { background:var(--card) } .facet .n { margin-left:auto; color:var(--mut) }
+  #q { width:100%; padding:8px; margin-bottom:10px; background:var(--card); border:1px solid var(--bd); color:var(--fg); border-radius:6px }
+  .dir { margin:10px 0 2px; color:var(--acc); font-size:12px }
+  .file { background:var(--card); border:1px solid var(--bd); border-radius:6px; margin:4px 0 }
+  .file > .head { padding:7px 10px; cursor:pointer; display:flex; gap:10px; align-items:baseline }
+  .file .path { font-weight:600 } .file .st { color:var(--mut); font-size:11px }
+  .file .body { display:none; border-top:1px solid var(--bd); padding:8px 10px }
+  .file.open .body { display:block }
+  .fn { padding:4px 6px; border-radius:4px } .fn:hover { background:#1c2128 }
+  .fn .sig { color:var(--mut); font-size:12px } .fn .doc { color:#7ee787; font-size:11px; margin-top:2px; white-space:pre-wrap }
+  .fn .calls { color:#d2a8ff; font-size:11px; margin-top:2px }
+  .tag { display:inline-block; padding:0 6px; border-radius:8px; font-size:10px; background:#1f6feb33; color:var(--acc); margin-left:4px }
+  .tag.dom { background:#3fb95022; color:#7ee787 } .tag.warn { background:#d2992222; color:#d29922 }
+  .cmt { color:var(--mut); font-size:11px; padding:1px 6px } .cmt.doc { color:#7ee787 }
+  .counts { color:var(--mut); font-size:12px; margin:4px 0 10px }
+  details { } summary { cursor:pointer }
+</style>
+</head>
+<body>
+<div id="side"></div>
+<div id="main"></div>
+<script id="data" type="application/json">__AUDIT_DATA__</script>
+<script>
+const DATA = JSON.parse(document.getElementById('data').textContent);
+const state = { lang:new Set(), status:new Set(), domain:new Set(), kind:new Set(), q:"" };
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function fnHits(f) {
+  return f.functions.filter(fn =>
+    (!state.kind.size || state.kind.has(fn.kind)) &&
+    (!state.domain.size || fn.domains.some(d => state.domain.has(d))) &&
+    (!state.q || (fn.name+" "+fn.signature+" "+(fn.doc||"")+" "+(fn.calls||[]).join(" ")).toLowerCase().includes(state.q))
+  );
+}
+function fileMatches(f) {
+  if (state.lang.size && !state.lang.has(f.lang||"(none)")) return false;
+  if (state.status.size && !state.status.has(f.status)) return false;
+  const fh = fnHits(f);
+  if ((state.kind.size || state.domain.size) && !fh.length) return false;
+  if (state.q) {
+    const inPath = f.path.toLowerCase().includes(state.q);
+    const inCmt = f.comments.some(c => c.text.toLowerCase().includes(state.q));
+    if (!inPath && !inCmt && !(f.functions.length ? fh.length : false)) return false;
+  }
+  return true;
+}
+function facetCounts() {
+  const c = { lang:{}, status:{}, domain:{}, kind:{} };
+  for (const f of DATA.files) {
+    if (!fileMatchesIgnore(f, 'lang')) c.lang[f.lang||"(none)"] = (c.lang[f.lang||"(none)"]||0)+1;
+    if (!fileMatchesIgnore(f, 'status')) c.status[f.status] = (c.status[f.status]||0)+1;
+    for (const fn of f.functions) {
+      for (const d of fn.domains) if (!fileMatchesIgnore(f,'domain')) c.domain[d]=(c.domain[d]||0)+1;
+      if (!fileMatchesIgnore(f,'kind')) c.kind[fn.kind]=(c.kind[fn.kind]||0)+1;
+    }
+  }
+  return c;
+}
+function fileMatchesIgnore(f, facet) {
+  const saved = new Set(state[facet]); state[facet] = new Set();
+  const ok = fileMatches(f); state[facet] = saved; return ok;
+}
+function render() {
+  const counts = facetCounts();
+  let side = `<h1>${esc(DATA.library)}</h1><div class="meta">${DATA.generated_at}<br>${DATA.files.length} files</div>`;
+  for (const [key,label] of [['lang','Language'],['status','Status'],['domain','Domain'],['kind','Kind']]) {
+    side += `<div class="facet"><h3>${label}</h3>` +
+      Object.entries(counts[key]).sort((a,b)=>b[1]-a[1]).map(([v,n]) =>
+        `<label><input type="checkbox" data-f="${key}" data-v="${esc(v)}" ${state[key].has(v)?'checked':''}>${esc(v)}<span class="n">${n}</span></label>`
+      ).join('') + `</div>`;
+  }
+  document.getElementById('side').innerHTML = side;
+
+  const shown = DATA.files.filter(fileMatches);
+  let html = `<input id="q" placeholder="search paths, functions, comments…" value="${esc(state.q)}">
+    <div class="counts">${shown.length} files · ${shown.reduce((a,f)=>a+fnHits(f).length,0)} functions · ${shown.reduce((a,f)=>a+f.comments.length,0)} comments</div>`;
+  let lastDir = null;
+  for (const f of shown) {
+    const dir = f.path.split('/').slice(0,-1).join('/') || '(root)';
+    if (dir !== lastDir) { html += `<div class="dir">${esc(dir)}/</div>`; lastDir = dir; }
+    const fns = fnHits(f);
+    html += `<div class="file"><div class="head" onclick="this.parentElement.classList.toggle('open')">
+      <span class="path">${esc(f.path.split('/').pop())}</span>
+      <span class="st">${f.lang||'-'} · ${f.status} · ${f.functions.length} fn · ${f.comments.length} cmt</span></div>
+      <div class="body">` +
+      fns.map(fn => `<div class="fn"><b>${esc(fn.name)}</b><span class="tag">${fn.kind}</span>` +
+        fn.domains.map(d=>`<span class="tag dom">${esc(d)}</span>`).join('') +
+        `<span class="st"> · arity ${fn.arity} · L${fn.line}-${fn.end_line}${fn.scope?' · '+esc(fn.scope):''}</span>
+        <div class="sig">${esc(fn.signature)}</div>` +
+        (fn.doc?`<div class="doc">${esc(fn.doc)}</div>`:'') +
+        (fn.calls&&fn.calls.length?`<div class="calls">→ ${esc(fn.calls.join(', '))}</div>`:'') + `</div>`).join('') +
+      `<details><summary class="cmt">${f.comments.length} comments</summary>` +
+      f.comments.map(c=>`<div class="cmt${c.is_doc?' doc':''}">L${c.line} ${esc(c.text)}</div>`).join('') +
+      `</details></div></div>`;
+  }
+  document.getElementById('main').innerHTML = html;
+  document.getElementById('q').addEventListener('input', e => { state.q = e.target.value.toLowerCase(); render(); });
+  document.querySelectorAll('#side input').forEach(cb => cb.addEventListener('change', e => {
+    const s = state[e.target.dataset.f];
+    e.target.checked ? s.add(e.target.dataset.v) : s.delete(e.target.dataset.v);
+    render();
+  }));
+}
+render();
+</script>
+</body>
+</html>

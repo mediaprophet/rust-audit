@@ -1,0 +1,17 @@
+@prefix audit: <https://audit.dev/ns#> .
+
+# GENERATED — safe to edit. External-documentation overlay.
+# audit:documentedBy links a function IRI to an audit:Document.
+# Repoint entries at any IRI (docs site, spec section, ontology node);
+# merge this file into codebase.ttl to publish the references.
+
+audit:doc_modules_shaders a audit:Document .
+audit:doc_modules_shaders audit:docPath "modules/shaders.md" .
+audit:doc_modules_src a audit:Document .
+audit:doc_modules_src audit:docPath "modules/src.md" .
+
+audit:fn_f_shaders_noise_wgsl_vertex_normal audit:documentedBy audit:doc_modules_shaders .
+audit:fn_f_src_lib_rs_integrate_rk4 audit:documentedBy audit:doc_modules_src .
+audit:fn_f_src_lib_rs_impl_Body_apply_force audit:documentedBy audit:doc_modules_src .
+audit:fn_f_src_util_py_triangulate audit:documentedBy audit:doc_modules_src .
+audit:fn_f_src_util_py_class_Solver_solve_linear audit:documentedBy audit:doc_modules_src .

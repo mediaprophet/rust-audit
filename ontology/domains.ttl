@@ -1,0 +1,109 @@
+# Domain vocabulary for function classification.
+# ------------------------------------------------------------------
+# FORMAT CONSTRAINT: this file is loaded by audit-core's line-subset
+# parser — keep ONE `subject predicate object .` triple per line.
+# Add domains by appending a block in the same shape. To extend a
+# domain, just add more `audit:keyword` lines for its subject.
+
+@prefix audit: <https://audit.dev/ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+audit:dom_physics a audit:Domain .
+audit:dom_physics audit:label "physics" .
+audit:dom_physics audit:keyword "physics" .
+audit:dom_physics audit:keyword "simulate" .
+audit:dom_physics audit:keyword "integrator" .
+audit:dom_physics audit:keyword "euler" .
+audit:dom_physics audit:keyword "runge kutta" .
+audit:dom_physics audit:keyword "rk4" .
+audit:dom_physics audit:keyword "velocity" .
+audit:dom_physics audit:keyword "acceleration" .
+audit:dom_physics audit:keyword "force" .
+audit:dom_physics audit:keyword "mass" .
+audit:dom_physics audit:keyword "momentum" .
+audit:dom_physics audit:keyword "collider" .
+audit:dom_physics audit:keyword "rigidbody" .
+
+audit:dom_computational_geometry a audit:Domain .
+audit:dom_computational_geometry audit:label "computational geometry" .
+audit:dom_computational_geometry audit:keyword "triangulate" .
+audit:dom_computational_geometry audit:keyword "triangulation" .
+audit:dom_computational_geometry audit:keyword "convex hull" .
+audit:dom_computational_geometry audit:keyword "delaunay" .
+audit:dom_computational_geometry audit:keyword "voronoi" .
+audit:dom_computational_geometry audit:keyword "aabb" .
+audit:dom_computational_geometry audit:keyword "bounding box" .
+audit:dom_computational_geometry audit:keyword "intersection" .
+audit:dom_computational_geometry audit:keyword "mesh" .
+audit:dom_computational_geometry audit:keyword "polygon" .
+audit:dom_computational_geometry audit:keyword "point in polygon" .
+audit:dom_computational_geometry audit:keyword "closest point" .
+
+audit:dom_3d a audit:Domain .
+audit:dom_3d audit:label "3d" .
+audit:dom_3d audit:keyword "vec3" .
+audit:dom_3d audit:keyword "mat4" .
+audit:dom_3d audit:keyword "quaternion" .
+audit:dom_3d audit:keyword "projection" .
+audit:dom_3d audit:keyword "frustum" .
+audit:dom_3d audit:keyword "camera" .
+audit:dom_3d audit:keyword "normal" .
+audit:dom_3d audit:keyword "vertex" .
+audit:dom_3d audit:keyword "ray" .
+audit:dom_3d audit:keyword "shader" .
+audit:dom_3d audit:keyword "lighting" .
+
+audit:dom_2d a audit:Domain .
+audit:dom_2d audit:label "2d" .
+audit:dom_2d audit:keyword "vec2" .
+audit:dom_2d audit:keyword "sprite" .
+audit:dom_2d audit:keyword "rect" .
+audit:dom_2d audit:keyword "pixel" .
+audit:dom_2d audit:keyword "canvas" .
+audit:dom_2d audit:keyword "rasterize" .
+
+audit:dom_graph a audit:Domain .
+audit:dom_graph audit:label "graph" .
+audit:dom_graph audit:keyword "graph" .
+audit:dom_graph audit:keyword "node" .
+audit:dom_graph audit:keyword "edge" .
+audit:dom_graph audit:keyword "bfs" .
+audit:dom_graph audit:keyword "dfs" .
+audit:dom_graph audit:keyword "dijkstra" .
+audit:dom_graph audit:keyword "topological" .
+audit:dom_graph audit:keyword "adjacency" .
+audit:dom_graph audit:keyword "shortest path" .
+
+audit:dom_semantics a audit:Domain .
+audit:dom_semantics audit:label "semantics" .
+audit:dom_semantics audit:keyword "ontology" .
+audit:dom_semantics audit:keyword "rdf" .
+audit:dom_semantics audit:keyword "triple" .
+audit:dom_semantics audit:keyword "sparql" .
+audit:dom_semantics audit:keyword "iri" .
+audit:dom_semantics audit:keyword "semantic" .
+audit:dom_semantics audit:keyword "taxonomy" .
+audit:dom_semantics audit:keyword "synset" .
+audit:dom_semantics audit:keyword "wordnet" .
+
+audit:dom_economics a audit:Domain .
+audit:dom_economics audit:label "economics" .
+audit:dom_economics audit:keyword "price" .
+audit:dom_economics audit:keyword "market" .
+audit:dom_economics audit:keyword "utility" .
+audit:dom_economics audit:keyword "supply" .
+audit:dom_economics audit:keyword "demand" .
+audit:dom_economics audit:keyword "equilibrium" .
+audit:dom_economics audit:keyword "portfolio" .
+audit:dom_economics audit:keyword "interest rate" .
+
+audit:dom_numerics a audit:Domain .
+audit:dom_numerics audit:label "numerics" .
+audit:dom_numerics audit:keyword "matrix" .
+audit:dom_numerics audit:keyword "eigen" .
+audit:dom_numerics audit:keyword "solve" .
+audit:dom_numerics audit:keyword "linear" .
+audit:dom_numerics audit:keyword "sparse" .
+audit:dom_numerics audit:keyword "factorization" .
+audit:dom_numerics audit:keyword "conjugate gradient" .
+audit:dom_numerics audit:keyword "fft" .

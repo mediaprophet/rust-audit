@@ -1,0 +1,16 @@
+[package]
+name = "audit-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+thiserror.workspace = true
+ignore.workspace = true
+sha2.workspace = true
+time.workspace = true
+audit-rdf = { path = "../audit-rdf" }
+audit-extract = { path = "../audit-extract" }
+serde.workspace = true
+serde_json.workspace = true

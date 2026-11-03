@@ -1,0 +1,11 @@
+/target
+# Scanner output lives under the scanned root
+.audit/
+**/.audit/
+# QualiaDB binaries/WASM are downloaded, not committed
+tools/qualia-cli*
+tools/qualia_core_db*
+tools/qualia.d.ts
+tools/qualia.js
+tools/qualia_bg.wasm
+tools/*.tar.gz

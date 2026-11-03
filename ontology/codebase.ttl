@@ -1,0 +1,317 @@
+# audit: codebase-scanning vocabulary
+# -----------------------------------
+# Classes and properties used by the `audit` scanner manifest and per-file
+# graphs. Extend by adding terms here and referencing them from emitted
+# triples; see domains.ttl for the data-driven domain vocabulary.
+
+@prefix audit: <https://audit.dev/ns#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix schema: <https://schema.org/> .
+
+audit: a owl:Ontology ;
+    rdfs:label "audit codebase ontology" ;
+    rdfs:comment "Vocabulary for describing scanned codebases: directories, files, comments, functions, and their processing state." .
+
+# ---- classes -------------------------------------------------------------
+
+audit:ScanManifest a owl:Class ;
+    rdfs:label "scan manifest" ;
+    rdfs:comment "Root node of the manifest graph tracking one scan root." .
+
+audit:Directory a owl:Class ;
+    rdfs:label "directory" ;
+    rdfs:comment "A directory inside the scanned tree." .
+
+audit:File a owl:Class ;
+    rdfs:label "file" ;
+    rdfs:subClassOf schema:DigitalDocument ;
+    rdfs:comment "Any file in the scanned tree." .
+
+audit:SourceFile a owl:Class ;
+    rdfs:label "source file" ;
+    rdfs:subClassOf audit:File, schema:SoftwareSourceCode ;
+    rdfs:comment "A file in a recognized source language." .
+
+audit:Function a owl:Class ;
+    rdfs:label "function" ;
+    rdfs:comment "A free-standing function extracted from a source file." .
+
+audit:Method a owl:Class ;
+    rdfs:label "method" ;
+    rdfs:subClassOf audit:Function ;
+    rdfs:comment "A function scoped to a type, trait impl, or class." .
+
+audit:Comment a owl:Class ;
+    rdfs:label "comment" ;
+    rdfs:comment "A source comment; doc comments marked via audit:isDocComment." .
+
+audit:Domain a owl:Class ;
+    rdfs:label "domain" ;
+    rdfs:comment "A subject-matter domain (physics, computational geometry, ...) used to classify functions. See domains.ttl." .
+
+audit:Library a owl:Class ;
+    rdfs:label "library" ;
+    rdfs:comment "A scanned library / codebase root; functions link back via audit:inLibrary." .
+
+audit:CanonicalFunction a owl:Class ;
+    rdfs:label "canonical function" ;
+    rdfs:comment "Language- or name-scoped identity of a function across libraries, used for coverage comparison." .
+
+audit:GapReport a owl:Class ;
+    rdfs:label "gap report" ;
+    rdfs:comment "Result of comparing two libraries: Gaps and Extras." .
+
+audit:Gap a owl:Class ;
+    rdfs:label "gap" ;
+    rdfs:comment "A reference-library function missing from the target library." .
+
+audit:Extra a owl:Class ;
+    rdfs:label "extra" ;
+    rdfs:comment "A target-library function absent from the reference library." .
+
+# ---- status individuals ---------------------------------------------------
+
+audit:Pending a owl:NamedIndividual ;
+    rdfs:label "pending" ;
+    rdfs:comment "File inventoried, not yet scanned." .
+
+audit:Processed a owl:NamedIndividual ;
+    rdfs:label "processed" ;
+    rdfs:comment "File scanned; graph emitted." .
+
+audit:Stale a owl:NamedIndividual ;
+    rdfs:label "stale" ;
+    rdfs:comment "File changed since last successful scan." .
+
+audit:Failed a owl:NamedIndividual ;
+    rdfs:label "failed" ;
+    rdfs:comment "Last scan attempt failed; see audit:error." .
+
+# ---- structural properties -------------------------------------------------
+
+audit:relativePath a owl:DatatypeProperty ;
+    rdfs:label "relative path" ;
+    rdfs:comment "Path of a node relative to the scan root, '/'-separated." .
+
+audit:inDirectory a owl:ObjectProperty ;
+    rdfs:label "in directory" ;
+    rdfs:comment "Parent directory node of a file or directory." .
+
+audit:rootName a owl:DatatypeProperty ;
+    rdfs:label "root name" ;
+    rdfs:comment "Display name of the scan root on a ScanManifest." .
+
+audit:hasFunction a owl:ObjectProperty ;
+    rdfs:label "has function" ;
+    rdfs:comment "Links a SourceFile to an extracted Function/Method." .
+
+audit:belongsTo a owl:ObjectProperty ;
+    rdfs:label "belongs to" ;
+    rdfs:comment "Links a Function or Comment to its containing file." .
+
+audit:inScope a owl:DatatypeProperty ;
+    rdfs:label "in scope" ;
+    rdfs:comment "Scope label for methods, e.g. 'impl Foo' or 'class Bar'." .
+
+audit:annotates a owl:ObjectProperty ;
+    rdfs:label "annotates" ;
+    rdfs:comment "Links a doc Comment to the Function it documents." .
+
+# ---- code properties ---------------------------------------------------------
+
+audit:language a owl:DatatypeProperty ;
+    rdfs:label "language" ;
+    rdfs:comment "Detected language id: rust, python, wgsl." .
+
+audit:name a owl:DatatypeProperty ;
+    rdfs:label "name" ;
+    rdfs:subPropertyOf schema:name ;
+    rdfs:comment "Declared name of a function." .
+
+audit:signature a owl:DatatypeProperty ;
+    rdfs:label "signature" ;
+    rdfs:comment "Single-line signature text of a function." .
+
+audit:line a owl:DatatypeProperty ;
+    rdfs:label "line" ;
+    rdfs:comment "1-based start line of a node." .
+
+audit:endLine a owl:DatatypeProperty ;
+    rdfs:label "end line" ;
+    rdfs:comment "1-based end line of a node." .
+
+audit:doc a owl:DatatypeProperty ;
+    rdfs:label "doc" ;
+    rdfs:subPropertyOf schema:description ;
+    rdfs:comment "Doc comment / docstring attached to a function." .
+
+audit:Document a owl:Class ;
+    rdfs:label "Document" ;
+    rdfs:comment "An external document that documents a code entity — enables documentation held outside source files." .
+
+audit:documentedBy a owl:ObjectProperty ;
+    rdfs:label "documented by" ;
+    rdfs:subPropertyOf schema:documentation ;
+    rdfs:comment "Links an entity to an external Document describing it (registry overlay or user-authored)." .
+
+audit:docRef a owl:DatatypeProperty ;
+    rdfs:label "doc ref" ;
+    rdfs:comment "External documentation pointer found inline in a doc comment (docref: marker)." .
+
+audit:visibility a owl:DatatypeProperty ;
+    rdfs:label "visibility" ;
+    rdfs:comment "Source-level visibility of a function: pub or private." .
+
+audit:docPath a owl:DatatypeProperty ;
+    rdfs:label "doc path" ;
+    rdfs:comment "Relative path (or URL string) locating a Document's content." .
+
+audit:text a owl:DatatypeProperty ;
+    rdfs:label "text" ;
+    rdfs:comment "Body text of a comment, markers stripped." .
+
+audit:isDocComment a owl:DatatypeProperty ;
+    rdfs:label "is doc comment" ;
+    rdfs:comment "True for ///, //!, /**, /*! style comments." .
+
+audit:hasDomain a owl:ObjectProperty ;
+    rdfs:label "has domain" ;
+    rdfs:comment "Classifies a function into a subject-matter Domain." .
+
+audit:inLibrary a owl:ObjectProperty ;
+    rdfs:label "in library" ;
+    rdfs:comment "Links a SourceFile to the Library it was scanned under." .
+
+audit:exports a owl:ObjectProperty ;
+    rdfs:label "exports" ;
+    rdfs:comment "Links a Library to a CanonicalFunction it provides." .
+
+audit:canonical a owl:ObjectProperty ;
+    rdfs:label "canonical" ;
+    rdfs:comment "Links a Function to its language-scoped CanonicalFunction." .
+
+audit:arity a owl:DatatypeProperty ;
+    rdfs:label "arity" ;
+    rdfs:comment "Parameter count of a function (includes self for methods)." .
+
+audit:function a owl:ObjectProperty ;
+    rdfs:label "function" ;
+    rdfs:comment "Links a Gap/Extra to the CanonicalFunction concerned." .
+
+audit:missingFrom a owl:ObjectProperty ;
+    rdfs:label "missing from" ;
+    rdfs:comment "The library a Gap function is absent from." .
+
+audit:extraIn a owl:ObjectProperty ;
+    rdfs:label "extra in" ;
+    rdfs:comment "The library an Extra function appears in beyond the reference." .
+
+audit:declaredIn a owl:DatatypeProperty ;
+    rdfs:label "declared in" ;
+    rdfs:comment "Source path where a compared function was declared." .
+
+audit:refLibrary a owl:ObjectProperty ;
+    rdfs:label "reference library" ;
+    rdfs:comment "The reference side of a GapReport." .
+
+audit:targetLibrary a owl:ObjectProperty ;
+    rdfs:label "target library" ;
+    rdfs:comment "The target side of a GapReport." .
+
+audit:generatedAt a owl:DatatypeProperty ;
+    rdfs:label "generated at" ;
+    rdfs:comment "xsd:dateTime a report was produced." .
+
+audit:matchBasis a owl:DatatypeProperty ;
+    rdfs:label "match basis" ;
+    rdfs:comment "The identity basis used for comparison, e.g. 'name'." .
+
+# ---- semantic edges (intra-procedural) -------------------------------------
+# Name-resolved, syntactic facts: no type inference, no macro expansion, no
+# cross-module resolution. `calls` over-approximates when a name is
+# overloaded — join via `canonical` to find candidate callees, then refine
+# with callTarget qualifiers / callExpr arities.
+
+audit:calls a owl:ObjectProperty ;
+    rdfs:label "calls" ;
+    rdfs:comment "Function -> CanonicalFunction call edge, resolved by callee NAME only. Over-approximates for overloaded names and dynamic dispatch; does not resolve trait impls, generics, or macro-generated calls." .
+
+audit:callsResolved a owl:ObjectProperty ;
+    rdfs:label "calls resolved" ;
+    rdfs:comment "Function -> concrete Function call edge, resolved by scope evidence: self./Self./cls. calls bind to same-scope methods; Type::foo binds to 'impl Type' methods (generics/module prefixes stripped); bare foo() binds to same-file or codebase-unique free functions. Multiple edges remain where candidates are ambiguous (cfg twins, same-type impls across files) — the edge asserts 'may resolve to'. Absent for receiver-typed method calls (x.foo()) and macros. Emitted by `audit scan` (intra-file) and `audit resolve` (cross-file)." .
+
+audit:callTarget a owl:DatatypeProperty ;
+    rdfs:label "call target" ;
+    rdfs:comment "Qualified call target text, e.g. 'self::apply_force', 'Vec::new', 'crate::m::foo'. Receiver/path text is preserved verbatim for disambiguation." .
+
+audit:callExpr a owl:DatatypeProperty ;
+    rdfs:label "call expression" ;
+    rdfs:comment "Distinct call target with site arity, e.g. 'self::apply_force/2', 'foo/3'. Multiple arities for one target indicate overloaded or variadic call sites." .
+
+audit:callCount a owl:DatatypeProperty ;
+    rdfs:label "call count" ;
+    rdfs:comment "Total call sites inside the function body (including repeats of the same callee)." .
+
+audit:invokesMacro a owl:DatatypeProperty ;
+    rdfs:label "invokes macro" ;
+    rdfs:comment "Rust macro invocation name (with '!'), e.g. 'println!'. Macros are not canonical functions — expansion is not modeled." .
+
+audit:paramType a owl:DatatypeProperty ;
+    rdfs:label "param type" ;
+    rdfs:comment "Declared parameter as 'name: type' (or bare name where untyped). Order is document order." .
+
+audit:returnType a owl:DatatypeProperty ;
+    rdfs:label "return type" ;
+    rdfs:comment "Declared return type text where the language exposes one." .
+
+audit:readsField a owl:DatatypeProperty ;
+    rdfs:label "reads field" ;
+    rdfs:comment "Member field accessed on the receiver (self.x in Rust/Python). Compound writes (x += 1) appear here AND in writesField." .
+
+audit:writesField a owl:DatatypeProperty ;
+    rdfs:label "writes field" ;
+    rdfs:comment "Member field assigned on the receiver (self.x = ..., x += 1). Indicates intra-object mutation." .
+
+audit:mutatesReceiver a owl:DatatypeProperty ;
+    rdfs:label "mutates receiver" ;
+    rdfs:comment "True when the receiver may be mutated: &mut self parameter, or any self-field write." .
+
+# ---- processing-state properties ----------------------------------------------
+
+audit:contentHash a owl:DatatypeProperty ;
+    rdfs:label "content hash" ;
+    rdfs:comment "sha256:<hex> of file contents at inventory time." .
+
+audit:modifiedAt a owl:DatatypeProperty ;
+    rdfs:label "modified at" ;
+    rdfs:comment "Filesystem mtime, xsd:dateTime." .
+
+audit:status a owl:ObjectProperty ;
+    rdfs:label "status" ;
+    rdfs:comment "Processing status: one of Pending/Processed/Stale/Failed." .
+
+audit:processedAt a owl:DatatypeProperty ;
+    rdfs:label "processed at" ;
+    rdfs:comment "xsd:dateTime of last successful scan." .
+
+audit:graphFile a owl:DatatypeProperty ;
+    rdfs:label "graph file" ;
+    rdfs:comment "Path of the emitted per-file Turtle graph, relative to the output dir." .
+
+audit:error a owl:DatatypeProperty ;
+    rdfs:label "error" ;
+    rdfs:comment "Error message from the last failed scan." .
+
+# ---- domain vocabulary properties -----------------------------------------------
+
+audit:label a owl:DatatypeProperty ;
+    rdfs:label "domain label" ;
+    rdfs:subPropertyOf rdfs:label ;
+    rdfs:comment "Display label of a Domain." .
+
+audit:keyword a owl:DatatypeProperty ;
+    rdfs:label "domain keyword" ;
+    rdfs:comment "Keyword phrase used to classify functions into a Domain." .

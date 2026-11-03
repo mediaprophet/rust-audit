@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Exec(./tools/qualia-cli.exe query)",
+      "Exec(./tools/qualia-cli.exe)",
+      "Exec(awk)",
+      "Exec(cd)"
+    ]
+  }
+}
